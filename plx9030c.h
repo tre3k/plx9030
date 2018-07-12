@@ -4,7 +4,7 @@
 enum{
      IOCTL_SET_ADDR,
      IOCTL_SET_GPIO
-}
+};
 
 #endif //PLX9030C_H
 

@@ -11,12 +11,15 @@
 #include <linux/fs.h>
 #include <linux/pci.h>
 
+
 #define MODULE_NAME "plx9030"
+#define DEVICE_FILE_NAME "plx"
 
 #define PMOD "plx9010: "
 #define PINFO KERN_INFO PMOD
 #define PERR KERN_ERR PMOD
-
+#define PALERT KERN_ALERT PMOD
+#define PWARN KERN_WARNING PMOD
 
 /* function of prototypes for device file */
 static ssize_t device_file_read(struct file *f, char __user *buff, size_t count, loff_t *offset);
@@ -51,6 +54,17 @@ static struct pci_driver s_pci_driver = {
 					      .probe    = plx_device_probe,
 					      .remove   = plx_device_remove
 };
+
+
+
+/* other prototypes */
+static int reg_file_device(char *prefix,
+			   dev_t *ldev,
+			   int *lmajor,
+			   struct cdev *lc_dev,
+			   struct class *lclass_dev,
+			   struct file_operations *
+			   );
 
 #endif //PLX9030_H
 
