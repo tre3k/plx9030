@@ -65,13 +65,8 @@ static struct pci_driver s_pci_driver = {
 
 
 /* other prototypes */
-static int reg_file_device(char *prefix,
-			   dev_t *ldev,
-			   int *lmajor,
-			   struct cdev *lc_dev,
-			   struct class *lclass_dev,
-			   struct file_operations *
-			   );
+static int reg_file_device(char *);
+static void unreg_file_device(void);
 
 #endif //PLX9030_H
 

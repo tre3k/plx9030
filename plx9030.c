@@ -5,13 +5,17 @@
 #include "plx9030.h"
 #include "plx9030c.h"
 
-static dev_t dev;
-static int major = 0;
+
 static int minor_count = 0;
-static struct cdev c_dev;
-static struct class *class_dev = NULL;
+static int hminor=0;
+
 
 static bool device_file_registred = false;
+
+static dev_t device = -1;
+static int minor,major;
+static struct cdev cdev_device;
+static struct class *class_device = NULL;
 
 
 MODULE_DEVICE_TABLE(pci,plx_ids_table);
@@ -20,23 +24,21 @@ static int __init init_plx9030(void){
   int retval;
   printk(PINFO "module start.\n");
 
-  reg_file_device("serial",&dev,&major,&c_dev,class_dev,(struct file_operations *)&s_file_operations);
-  //retval = pci_register_driver((struct pci_driver *)&s_pci_driver);
+  reg_file_device("qwe");
 
+  
+  //retval = pci_register_driver((struct pci_driver *)&s_pci_driver);
+  
   return retval;
 }
 
 static void __exit exit_plx9030(void){
 
-  if(device_file_registred){
-    printk(PINFO "unregistred dev char file\n");
-    cdev_del(&c_dev);
-    device_destroy(class_dev,dev);
-    class_destroy(class_dev);
-    unregister_chrdev_region(dev,256);
-  }
-  pci_unregister_driver(&s_pci_driver);
   
+  unreg_file_device();
+
+  
+  //pci_unregister_driver(&s_pci_driver);  
   printk(PINFO "module exit.\n");
   return;
 }
@@ -121,21 +123,26 @@ static void plx_device_remove(struct pci_dev *pdev){
 }
 
 
+/* FILE DEVICE */
+
+
 /* functions for processng operation of char device file */ 
 static ssize_t device_file_read(struct file *f, char __user *buff, size_t count, loff_t *offset){
   ssize_t retval = 0;
-  
+  printk(PINFO "file read");
 
   return retval;
 }
 
 static ssize_t device_file_write(struct file *f, const char __user *buff, size_t count, loff_t *offset){
-
+  printk(PINFO "file write");
   
   return count;
 }
 
 static long device_file_ioctl(struct file *f, unsigned int ioctl_num, unsigned long ioctl_param){
+  printk(PINFO "file ioctl");
+
   switch(ioctl_num){
   case IOCTL_SET_ADDR:
     break;
@@ -148,70 +155,77 @@ static long device_file_ioctl(struct file *f, unsigned int ioctl_num, unsigned l
 }
 
 static int device_file_release(struct inode *inode, struct file *f){
+  printk(PINFO "file release");
+   
   
   return 0;
 }
 
 static int device_file_open(struct inode *inode, struct file *f){
+  printk(PINFO "file open");
+
   return 0;
 }
 
 
 /* register and create char file of device */
-static int reg_file_device(char *prefix,dev_t *ldev,int *lmajor,
-			   struct cdev *lc_dev, struct class *lclass_dev,
-			   struct file_operations *sfo){
+static int reg_file_device(char *prefix){
   int retval = 0;
-
-  int lminor;
-  
+  int i;
   char namebuffer[32];
-  sprintf(namebuffer,DEVICE_FILE_NAME "_%s_%d",prefix,minor_count);
-
-  /* proc */
-  retval = alloc_chrdev_region(ldev,0,1,namebuffer);
-  if(retval < 0){
-    printk(PERR "Error! Failed alloc char device region :(\n");
-    return retval;
+ 
+  //for(i=0;i<32;i++) namebuffer[i]=0;
+  sprintf(namebuffer,DEVICE_FILE_NAME);
+  
+  int ret = 0;
+  
+  ret = alloc_chrdev_region(&device,0,1,namebuffer);
+  if(ret < 0){
+    printk(PERR "Error alloc chrdev region. :(\n");
+    return ret;
   }
-  lminor = MINOR(*ldev);
-  lmajor = MAJOR(*ldev);
-  printk(PINFO "alloc char file region, major = %d, minor = %d\n",lmajor,lminor);
-  if(minor_count != lminor) printk(PWARN "minor count not eq current minor!\n"); 
+  
 
-  /* sys */
-  lclass_dev = class_create(THIS_MODULE,namebuffer);
-  if(lclass_dev == NULL){
-    printk(PERR "Error! Failed create class for device! :(\n");
-    unregister_chrdev_region(*ldev,1);
+  major = MAJOR(device);
+  minor = MINOR(device);
+  printk(PINFO "Ok, major: %d, minor: %d\n", major, minor);
+
+  class_device = class_create(THIS_MODULE, namebuffer);
+  if(class_device == NULL){
+    printk(PERR "Error create class :(\n");
     return -1;
   }
 
-  /* dev */
-  if(device_create(lclass_dev, NULL, *ldev, NULL, namebuffer) == NULL){
-    printk(PERR "Error! Can't create device :(\n");
-    unregister_chrdev_region(*ldev,1);
-    class_destroy(lclass_dev);
+  if(device_create(class_device, NULL, device, NULL,namebuffer) == NULL){
+    printk(PERR "Error create device :(\n");
     return -1;
   }
 
-  cdev_init(lc_dev,sfo);
-  retval = cdev_add(lc_dev,*ldev,1);
-  if(retval < 0){
-    printk(PERR "Error! Fail cdev add :(\n");
-    unregister_chrdev_region(*ldev,1);
-    class_destroy(lclass_dev);
-    return -1;
+  cdev_init(&cdev_device,&s_file_operations);
+  ret = cdev_add(&cdev_device,device,1);
+  if(ret < 0){
+    printk(PERR "Error cdev_add :(\n");
+    return ret;
   }
-
-
-  printk(PINFO "device char file: %s\n",namebuffer);
+  
+  printk(PINFO "Ok :)\n");
   
   minor_count++;
   device_file_registred = true;
   return 0;
 }
 
+static void unreg_file_device(){
+  printk(PINFO "cdev_del\n");
+  cdev_del(&cdev_device);
+  printk(PINFO "device destroy\n");
+  device_destroy(class_device,device);
+  printk(PINFO "class_destroy\n");
+  class_destroy(class_device);
+  printk(PINFO "unregister_chrdev_region\n");
+  unregister_chrdev_region(device,255);
+  return;
+}
 
 module_init(init_plx9030);
 module_exit(exit_plx9030);
