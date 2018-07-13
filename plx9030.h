@@ -15,11 +15,17 @@
 #define MODULE_NAME "plx9030"
 #define DEVICE_FILE_NAME "plx"
 
+#define ADDR_SN_IN_EEPROP 0x00a00003
+#define VPD_DATA 0x50
+#define VPD_ADDR 0x4c
+
+
 #define PMOD "plx9010: "
 #define PINFO KERN_INFO PMOD
 #define PERR KERN_ERR PMOD
 #define PALERT KERN_ALERT PMOD
 #define PWARN KERN_WARNING PMOD
+
 
 /* function of prototypes for device file */
 static ssize_t device_file_read(struct file *f, char __user *buff, size_t count, loff_t *offset);
@@ -44,6 +50,7 @@ static void plx_device_remove(struct pci_dev *pdev);
 
 static struct pci_device_id plx_ids_table[] =  {
 					       { PCI_DEVICE(0x10b5,0x90f1) },
+					       { PCI_DEVICE(0x8086,0x9d21) }, //For test!
 					       {0,}
 };
 

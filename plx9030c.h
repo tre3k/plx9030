@@ -3,6 +3,10 @@
 
 enum{
      IOCTL_SET_ADDR,
+     IOCTL_SET_CS0,
+     IOCTL_SET_CS1,
+     IOCTL_SET_CS2,
+     IOCTL_SET_CS3,
      IOCTL_SET_GPIO
 };
 
