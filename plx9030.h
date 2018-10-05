@@ -10,21 +10,20 @@
 #include <linux/uaccess.h>
 #include <linux/fs.h>
 #include <linux/pci.h>
-
+#include <linux/delay.h>
 
 #define MODULE_NAME "plx9030"
-#define DEVICE_FILE_NAME "plx"
+#define DEVICE_FILE_NAME "plxdev"
+#define MAX_DEVICES 8
 
 #define ADDR_SN_IN_EEPROP 0x00a00003
 #define VPD_DATA 0x50
 #define VPD_ADDR 0x4c
 
 
-#define PMOD "plx9010: "
-#define PINFO KERN_INFO PMOD
-#define PERR KERN_ERR PMOD
-#define PALERT KERN_ALERT PMOD
-#define PWARN KERN_WARNING PMOD
+static unsigned int gCount = 0;
+static dev_t tdev;
+static unsigned int gMajor;
 
 
 /* function of prototypes for device file */
@@ -49,9 +48,8 @@ static int plx_device_probe(struct pci_dev *pdev, const struct pci_device_id *en
 static void plx_device_remove(struct pci_dev *pdev);
 
 static struct pci_device_id plx_ids_table[] =  {
-					       { PCI_DEVICE(0x10b5,0x90f1) },
-					       { PCI_DEVICE(0x8086,0x9d21) }, //For test!
-					       {0,}
+						{PCI_DEVICE(0x10b5,0x90f1)},
+						{0,}
 };
 
 
@@ -62,13 +60,28 @@ static struct pci_driver s_pci_driver = {
 					      .remove   = plx_device_remove
 };
 
+struct my_chrdevice_data{
+  struct cdev cdev;
+  struct class *dev_class; 
+
+  unsigned long cs0_port;
+  unsigned long cs1_port;
+  void __iomem *cs2_mem;
+  void __iomem *cs3_mem;
+
+  long lencs0,lencs1,lencs2,lencs3;
+  
+  unsigned int major;
+  unsigned int number;
+  
+  int cs_flag;
+  long offset;
+};
+
+struct my_chrdevice_data devs[MAX_DEVICES];
+
+static int init_chrdev(void);
+static void remove_chrdev(void);
 
 
-/* other prototypes */
-static int reg_file_device(char *);
-static void unreg_file_device(void);
-
-#endif //PLX9030_H
-
-/* EOF */
-
+#endif
