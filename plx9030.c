@@ -90,9 +90,9 @@ static int plx_device_probe(struct pci_dev *pdev, const struct pci_device_id *en
   devs[gCount].cs3_mem = pci_ioremap_bar(pdev,5);
 
   devs[gCount].lencs0 = pci_resource_len(pdev,2);
-  devs[gCount].lencs0 = pci_resource_len(pdev,3);
-  devs[gCount].lencs0 = pci_resource_len(pdev,4);
-  devs[gCount].lencs0 = pci_resource_len(pdev,5);
+  devs[gCount].lencs1 = pci_resource_len(pdev,3);
+  devs[gCount].lencs2 = pci_resource_len(pdev,4);
+  devs[gCount].lencs3 = pci_resource_len(pdev,5);
 
   
   devs[gCount].number = gCount;
