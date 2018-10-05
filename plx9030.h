@@ -9,6 +9,8 @@
 #ifndef PLX9030_H
 #define PLX9030_H
 
+//#define DEBUG_MODE
+
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kernel.h>
@@ -72,6 +74,8 @@ struct my_chrdevice_data{
   struct cdev cdev;
   struct class *dev_class; 
 
+  dev_t mkdev;
+  
   unsigned long cs0_port;
   unsigned long cs1_port;
   void __iomem *cs2_mem;

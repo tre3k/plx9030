@@ -108,7 +108,7 @@ static void plx_device_remove(struct pci_dev *pdev){
   pci_release_regions(pdev);
   pci_disable_device(pdev);
   remove_chrdev();
-  printk(KERN_INFO MODULE_NAME ": remove device %d\n",gCount);
+  printk(KERN_INFO MODULE_NAME ": remove device: %s%d\n",DEVICE_FILE_NAME,gCount);
   gCount++;
   return;
 }
@@ -124,22 +124,19 @@ static int init_chrdev(void){
   sprintf(device_name,"plxdev%d",gCount);
   sprintf(device_name_class,"plxdev%d",gCount);
 
-
-  if(retval < 0) goto err_alloc;
   devs[gCount].dev_class = class_create(THIS_MODULE,device_name_class);
   if(devs[gCount].dev_class == NULL) goto err_class;
-  //if(device_create(devs[gCount].dev_class,NULL,tdev,NULL,device_name)==NULL) goto err_device;
-  if(device_create(devs[gCount].dev_class,NULL,MKDEV(gMajor,gCount),NULL,device_name)==NULL) goto err_device;
+  devs[gCount].mkdev = MKDEV(gMajor,gCount);
+  if(device_create(devs[gCount].dev_class,NULL,devs[gCount].mkdev,NULL,device_name)==NULL) goto err_device;
   cdev_init(&devs[gCount].cdev,&s_file_operations);
   devs[gCount].cdev.owner = THIS_MODULE;
-  retval = cdev_add(&devs[gCount].cdev,MKDEV(gMajor,gCount),1);
+  retval = cdev_add(&devs[gCount].cdev,devs[gCount].mkdev,1);
   if(retval < 0) goto err_cdevadd;
-  
 
   printk(KERN_INFO MODULE_NAME ": register device: %s\n",device_name);
   
   return retval;
- err_alloc:
+  
  err_cdevadd:
   device_destroy(devs[gCount].dev_class,tdev);
  err_device:
@@ -151,7 +148,8 @@ static int init_chrdev(void){
 }
 
 static void remove_chrdev(void){
-  device_destroy(devs[gCount].dev_class,MKDEV(gMajor,gCount));
+  cdev_del(&(devs[gCount].cdev));
+  device_destroy(devs[gCount].dev_class,devs[gCount].mkdev);
   class_destroy(devs[gCount].dev_class);
   return;
 }
@@ -163,8 +161,6 @@ static int device_file_open(struct inode *inode, struct file *f){
   
   mydata = container_of(inode->i_cdev, struct my_chrdevice_data, cdev);
   f->private_data = mydata;
-  
-  printk("open number: %d\n",mydata->number);
   
   return retval;
 }
@@ -201,8 +197,10 @@ static long device_file_ioctl(struct file *f, unsigned int ioctl_num, unsigned l
   mydata->cs_flag = ioctl_num;
   mydata->offset = ioctl_param;
 
-  printk("ioctl: num: %d, param: %d\n",ioctl_num,ioctl_param);
-  printk("ioctl: cs: %d, offset: %d\n",mydata->cs_flag,mydata->offset);
+#ifdef DEBUG_MODE
+  printk(KERN_INFO MODULE_NAME "ioctl: num: %d, param: %d\n",ioctl_num,ioctl_param);
+  printk(KERN_INFO MODULE_NAME "ioctl: cs: %d, offset: %d\n",mydata->cs_flag,mydata->offset);
+#endif
   
   return retval;
 }
@@ -211,34 +209,45 @@ static long device_file_ioctl(struct file *f, unsigned int ioctl_num, unsigned l
 static ssize_t device_file_read(struct file *f, char __user *buff, size_t count, loff_t *offset){
   struct my_chrdevice_data *mydata;
   mydata = (struct my_chrdevice_data *) f->private_data;
-  printk(KERN_INFO MODULE_NAME ": read from device: plxdev%d\n",mydata->number);
-  printk("read: cs: %d, offset: %d\n",mydata->cs_flag,mydata->offset);
 
+#ifdef DEBUG_MODE
+  printk(KERN_INFO MODULE_NAME "read: cs: %d, offset: %d\n",mydata->cs_flag,mydata->offset);
+#endif
   unsigned char iobuff = 0x00;
   
   switch(mydata->cs_flag){
   case CS0_SET_ADDR:
+#ifdef DEBUG_MODE
     printk(KERN_INFO MODULE_NAME ": SET CS0, offset: %d\n",mydata->offset);
+#endif
     iobuff = inb(mydata->cs0_port+mydata->offset);
     break;
     
   case CS1_SET_ADDR:
+#ifdef DEBUG_MODE
     printk(KERN_INFO MODULE_NAME ": SET CS1, offset: %d\n",mydata->offset);
+#endif
     iobuff = inb(mydata->cs1_port+mydata->offset);
     break;
     
   case CS2_SET_ADDR:
+#ifdef DEBUG_MODE
     printk(KERN_INFO MODULE_NAME ": SET CS2, offset: %d\n",mydata->offset);
+#endif
     iobuff = (unsigned char) ioread8(mydata->cs2_mem+mydata->offset);
     break;
     
   case CS3_SET_ADDR:
+#ifdef DEBUG_MODE
     printk(KERN_INFO MODULE_NAME ": SET CS3, offset: %d\n",mydata->offset);
+#endif
     iobuff = (unsigned char) ioread8(mydata->cs2_mem+mydata->offset);
     break;
   }
 
+#ifdef DEBUG_MODE 
   printk(KERN_INFO MODULE_NAME ": read data: 0x%.2x\n",iobuff & 0xff);
+#endif
   copy_to_user(buff,(const void *)&iobuff,1);
   
   return count;
@@ -247,30 +256,40 @@ static ssize_t device_file_read(struct file *f, char __user *buff, size_t count,
 static ssize_t device_file_write(struct file *f, const char __user *buff, size_t count, loff_t *offset){
   struct my_chrdevice_data *mydata;
   mydata = (struct my_chrdevice_data *) f->private_data;
+#ifdef DEBUG_MODE
   printk(KERN_INFO MODULE_NAME ": write to device: plxdev%d\n",mydata->number);
-
+#endif
+  
   unsigned char iobuff = 0x00;
 
   copy_from_user(&iobuff,buff,1);
   
   switch(mydata->cs_flag){
   case CS0_SET_ADDR:
+#ifdef DEBUG_MODE
     printk(KERN_INFO MODULE_NAME ": SET CS0, write data: 0x%.2x\n",iobuff);
+#endif
     outb(iobuff,mydata->cs0_port+mydata->offset);
     break;
     
   case CS1_SET_ADDR:
+#ifdef DEBUG_MODE
     printk(KERN_INFO MODULE_NAME ": SET CS1, write data: 0x%.2x\n",iobuff);
+#endif
     outb(iobuff,mydata->cs1_port+mydata->offset);
     break;
     
   case CS2_SET_ADDR:
+#ifdef DEBUG_MODE
     printk(KERN_INFO MODULE_NAME ": SET CS2, write data: 0x%.2x\n",iobuff);
+#endif
     iowrite8(iobuff,mydata->cs2_mem+mydata->offset);
     break;
     
   case CS3_SET_ADDR:
+#ifdef DEBUG_MODE  
     printk(KERN_INFO MODULE_NAME ": SET CS3, write data: 0x%.2x\n",iobuff);
+#endif
     iowrite8(iobuff,mydata->cs2_mem+mydata->offset);
     break;
   }
