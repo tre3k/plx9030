@@ -1,3 +1,11 @@
+/* Copyright (c) Petersburg Nuclear Physics Institute 2018 
+ * LO, Gatchina Orlova Roscha NRC KI, PNPI 
+ * Autros: Kirill Pshenichnyi and Mikhail Golubev 
+ *
+ * It is free software
+ */
+
+
 #include "plx9030.h"
 #include "plx9030c.h"
 
