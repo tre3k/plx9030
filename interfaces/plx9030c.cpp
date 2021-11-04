@@ -20,7 +20,7 @@
  */
 
 
-#include "plx9030c.h"
+#include <plx9030c.h>
 
 using namespace PLX9030;
 

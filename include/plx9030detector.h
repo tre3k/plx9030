@@ -32,7 +32,7 @@
 #include <stdbool.h>
 #include <vector>
 
-#include "plx9030c.h"
+#include <plx9030c.h>
 
 
 namespace PLX9030Detector{
@@ -48,19 +48,19 @@ namespace PLX9030Detector{
 #define X2 1
 #define X1 5
 
-struct raw_data{
+struct raw_data {
 	int code;
 	int value;
 	uint16_t raw;
 };
 
-struct four_value{
+struct four_value {
 	int x1, x2, y1, y2;
 	bool correct;
 };
 
 
-class plx9030Detector{
+class plx9030Detector {
 public:
 	explicit plx9030Detector(std::string device);
 	~plx9030Detector();
@@ -73,15 +73,18 @@ public:
 	unsigned char checkMem(void);
 
 public:
-	int status;
+
 	static bool is_runing;
 	static bool is_mem_end;
 	static bool is_half_mem_end;
 	static unsigned int mem_count;
 
+	int getStatus(void);
+
 private:
 	PLX9030::plx9030 *plx = nullptr;
 	int fromCode(int code);
+	int status {0};
 };
 
 }

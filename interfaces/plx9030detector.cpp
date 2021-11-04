@@ -20,7 +20,7 @@
  */
 
 
-#include "plx9030detector.h"
+#include <plx9030detector.h>
 
 using namespace PLX9030Detector;
 
@@ -31,18 +31,17 @@ unsigned int plx9030Detector::mem_count = 0;
 
 plx9030Detector::plx9030Detector(std::string device){
 	plx = new PLX9030::plx9030(device);
-	if(plx->getStatus()!=0) std::cout << "error open device!\n";
-
+	status = plx->getStatus();
+	if(status != 0){
+		delete plx;
+	}
 }
 
 plx9030Detector::~plx9030Detector(){
-	std::cout << "close device" << std::endl;
 	delete plx;
 }
 
 void plx9030Detector::init(){
-	std::cout << "init!" << std::endl;
-
 	plx->write8(PLX9030::CS0, 0, 0);                // RESET
 	plx->write8(PLX9030::CS0, 2, 0);                // RESET TDC & FIFO
 	plx->write_hw16(PLX9030::CS3, 31, 0);           // Disable start & stop
@@ -88,17 +87,9 @@ void plx9030Detector::init(){
 	plx->write_hw16(PLX9030::CS3, 8, 0);
 
 	usleep(100000);
-
-	// Check
-	unsigned short int tmp;
-
-	std::cout << "Check mem: 0x" <<
-		std::hex << (int)checkMem() << std::dec << std::endl;
 }
 
 void plx9030Detector::start(){
-	std::cout << "start!\n";
-
 	plx->write8(PLX9030::CS0, 0, 0x80);
 	plx->write8(PLX9030::CS0, 2, 0x40);
 	plx->write_hw16(PLX9030::CS3, 31, 0xf001);
@@ -108,7 +99,6 @@ void plx9030Detector::start(){
 
 void plx9030Detector::stop(){
 	plx->write_hw16(PLX9030::CS3,  31,  0xf803);
-	std::cout << "stop!\n";
 }
 
 raw_data plx9030Detector::readMem(){
@@ -195,4 +185,8 @@ int plx9030Detector::fromCode(int code) {
 		return 3;
 	}
 	return -1;
+}
+
+int plx9030Detector::getStatus() {
+	return status;
 }

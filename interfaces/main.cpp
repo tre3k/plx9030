@@ -27,19 +27,36 @@
 #include "plx9030detector.h"
 
 int main(int argc,char **argv){
+
+	std::string device_name = "/dev/plxdev0";
+	if(argc > 1) device_name = std::string(argv[1]);
+
+	std::cout << "try open char device file: " <<
+		device_name << std::endl;
 	PLX9030Detector::plx9030Detector *det =
-		new PLX9030Detector::plx9030Detector("/dev/plxdev0");
+		new PLX9030Detector::plx9030Detector(device_name);
+	if(det->getStatus() != 0){
+		std::cout << "Can't open char device file." <<
+			std::endl << "exiting." << std::endl;
+		exit(0);
+	}
+	std::cout << "ok." << std::endl;
+	std::cout << "init()" << std::endl;
 	det->init();
+	std::cout << "start()" << std::endl;
 	det->start();
 	sleep(1);
+	std::cout << "stop()" << std::endl;
 	det->stop();
 
 	std::cout << std::hex <<
-		"Check: 0x" << (int) det->checkMem() << std::dec << std::endl;
+		"check mem: 0x" << (int) det->checkMem()
+		  << std::dec << std::endl;
 
 	std::vector<PLX9030Detector::raw_data> values;
 	std::vector<PLX9030Detector::four_value> values4;
 
+	std::cout << "read memory" << std::endl;
 	values = det->getAllMemory();
 	values4 = det->convertToFourValue(values);
 
@@ -48,8 +65,7 @@ int main(int argc,char **argv){
 			  << ", x2 = " << val.x2
 			  << ", y1 = " << val.y1
 			  << ", y2 = " << val.y2;
-		if(!val.correct) std::cout << " NOT CORRECT!";
-		std::cout << std::endl;
+		if(!val.correct) std::cout << " NOT CORRECT!" << std::endl;
 	}
 
 
