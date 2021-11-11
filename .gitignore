@@ -4,6 +4,7 @@
 
 modules.order
 Module.symvers
+/interfaces/compile_commands.json
 
 *.cmd
 *.ko

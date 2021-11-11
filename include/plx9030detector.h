@@ -71,6 +71,7 @@ public:
 	std::vector<raw_data> getAllMemory(void);
 	std::vector<four_value> convertToFourValue(std::vector<raw_data>);
 	unsigned char checkMem(void);
+	int getStatus(void);
 
 public:
 
@@ -79,8 +80,6 @@ public:
 	static bool is_half_mem_end;
 	static unsigned int mem_count;
 
-	int getStatus(void);
-
 private:
 	PLX9030::plx9030 *plx = nullptr;
 	int fromCode(int code);
@@ -88,5 +87,23 @@ private:
 };
 
 }
+
+extern "C"
+{
+	PLX9030Detector::plx9030Detector *
+	plx9030det(char *chrdev) {
+		return new PLX9030Detector::
+			plx9030Detector(std::string(chrdev));
+	}
+
+	unsigned int checkMem(PLX9030Detector::plx9030Detector *f){
+		return f->checkMem();
+	}
+
+	int getStatus(PLX9030Detector::plx9030Detector *f){
+		return f->getStatus();
+	}
+}
+
 
 #endif // PLX9030DETECTOR_H
