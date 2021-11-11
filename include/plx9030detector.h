@@ -96,12 +96,24 @@ extern "C"
 			plx9030Detector(std::string(chrdev));
 	}
 
-	unsigned int checkMem(PLX9030Detector::plx9030Detector *f){
+	unsigned int checkMem(PLX9030Detector::plx9030Detector *f) {
 		return f->checkMem();
 	}
 
-	int getStatus(PLX9030Detector::plx9030Detector *f){
+	int getStatus(PLX9030Detector::plx9030Detector *f) {
 		return f->getStatus();
+	}
+
+	void init(PLX9030Detector::plx9030Detector *f) {
+		f->init();
+	}
+
+	void start(PLX9030Detector::plx9030Detector *f) {
+		f->start();
+	}
+
+	void stop(PLX9030Detector::plx9030Detector *f) {
+		f->stop();
 	}
 }
 
