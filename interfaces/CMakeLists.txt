@@ -13,8 +13,8 @@ include_directories(${INCLUDE_PATH})
 link_directories(${LIBRARY_PATH})
 
 add_library(plx9030detector SHARED
-  plx9030c.cpp
-  plx9030detector.cpp
+  plx9030c.cpp ${INCLUDE_PATH}/plx9030c.h
+  plx9030detector.cpp ${INCLUDE_PATH}/plx9030detector.h
   )
 
 add_executable(test main.cpp)

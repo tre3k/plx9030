@@ -105,7 +105,7 @@ raw_data plx9030Detector::readMem(){
 	raw_data retval;
 	uint16_t tmp;
 
-	tmp = (unsigned short int)(plx->read_hw16(PLX9030::CS3, 256)&0xffff);
+	tmp = (uint16_t)(plx->read_hw16(PLX9030::CS3, 256) & 0xffff);
 	retval.raw = tmp;
 	retval.code = (tmp & 0xe000) >> 13;
 	retval.value = tmp & 0x1fff;
@@ -164,6 +164,14 @@ std::vector<four_value> plx9030Detector::convertToFourValue(
 	}
 
 	return retval;
+}
+
+void plx9030Detector::getImage(unsigned int *array, unsigned int size) {
+	for(int i = 0; i < size; i++) {
+		for(int j=0; j < size; j++) {
+
+		}
+	}
 }
 
 unsigned char plx9030Detector::checkMem() {
