@@ -74,9 +74,6 @@ namespace PLX9030Detector{
 		unsigned char checkMem(void);
 		int getStatus(void);
 
-		/* save data to array */
-		void getImage(unsigned int *array, unsigned int size);
-
 	public:
 
 		static bool is_runing;
@@ -130,6 +127,20 @@ extern "C"
 
 	void delete_plx9030det(PLX9030Detector::plx9030Detector *f) {
 		delete f;
+	}
+
+	void read_data(PLX9030Detector::plx9030Detector *f,
+		       unsigned int *data,
+		       int size) {
+
+		// auto fullMem = f->getAllMemory();
+		// for(auto var : fullMem) { .... } etc...
+
+		int coord;
+		for(int i=0;i<10;i++){
+			coord = rand()%(size*size);
+			data[coord] += 1;
+		}
 	}
 }
 

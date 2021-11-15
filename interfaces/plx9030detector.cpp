@@ -166,13 +166,6 @@ std::vector<four_value> plx9030Detector::convertToFourValue(
 	return retval;
 }
 
-void plx9030Detector::getImage(unsigned int *array, unsigned int size) {
-	for(int i = 0; i < size; i++) {
-		for(int j=0; j < size; j++) {
-
-		}
-	}
-}
 
 unsigned char plx9030Detector::checkMem() {
 	unsigned char byte = 0x00;
