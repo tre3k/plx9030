@@ -24,12 +24,12 @@
 
 using namespace PLX9030Detector;
 
-bool plx9030Detector::is_runing = false;
-bool plx9030Detector::is_mem_end = false;
-bool plx9030Detector::is_half_mem_end = false;
-unsigned int plx9030Detector::mem_count = 0;
+bool Plx9030PSD::is_runing = false;
+bool Plx9030PSD::is_mem_end = false;
+bool Plx9030PSD::is_half_mem_end = false;
+unsigned int Plx9030PSD::mem_count = 0;
 
-plx9030Detector::plx9030Detector(std::string device){
+Plx9030PSD::Plx9030PSD(std::string device){
 	plx = new PLX9030::plx9030(device);
 	status = plx->getStatus();
 	if(status != 0){
@@ -37,11 +37,11 @@ plx9030Detector::plx9030Detector(std::string device){
 	}
 }
 
-plx9030Detector::~plx9030Detector(){
+Plx9030PSD::~Plx9030PSD(){
 	delete plx;
 }
 
-void plx9030Detector::init(){
+void Plx9030PSD::init(){
 	plx->write8(PLX9030::CS0, 0, 0);                // RESET
 	plx->write8(PLX9030::CS0, 2, 0);                // RESET TDC & FIFO
 	plx->write_hw16(PLX9030::CS3, 31, 0);           // Disable start & stop
@@ -89,7 +89,7 @@ void plx9030Detector::init(){
 	usleep(100000);
 }
 
-void plx9030Detector::start(){
+void Plx9030PSD::start(){
 	plx->write8(PLX9030::CS0, 0, 0x80);
 	plx->write8(PLX9030::CS0, 2, 0x40);
 	plx->write_hw16(PLX9030::CS3, 31, 0xf001);
@@ -97,11 +97,11 @@ void plx9030Detector::start(){
 	plx->write_hw16(PLX9030::CS3, 31, 0xfc03);
 }
 
-void plx9030Detector::stop(){
+void Plx9030PSD::stop(){
 	plx->write_hw16(PLX9030::CS3,  31,  0xf803);
 }
 
-raw_data plx9030Detector::readMem(){
+raw_data Plx9030PSD::readMem(){
 	raw_data retval;
 	uint16_t tmp;
 
@@ -113,7 +113,7 @@ raw_data plx9030Detector::readMem(){
 	return retval;
 }
 
-std::vector<raw_data> plx9030Detector::getAllMemory(void){
+std::vector<raw_data> Plx9030PSD::getAllMemory(void){
 	std::vector<raw_data> retval;
 
 	raw_data mem_val;
@@ -134,7 +134,7 @@ std::vector<raw_data> plx9030Detector::getAllMemory(void){
 	return retval;
 }
 
-std::vector<four_value> plx9030Detector::convertToFourValue(
+std::vector<four_value> Plx9030PSD::convertToFourValue(
 	std::vector<raw_data> raw_values) {
 	std::vector<four_value> retval;
 	four_value four;
@@ -157,9 +157,8 @@ std::vector<four_value> plx9030Detector::convertToFourValue(
 		four.y2 = value[fromCode(Y2)];
 		four.x2 = value[fromCode(X2)];
 
-		for(int j=0;j<4;j++) if(value[j]<0 || value[j]>4800)
-					     four.correct = false;
-
+		for(int j = 0; j < 4; j++) if(value[j] < 0 || value[j] > 4800)
+						   four.correct = false;
 		retval.push_back(four);
 	}
 
@@ -167,14 +166,14 @@ std::vector<four_value> plx9030Detector::convertToFourValue(
 }
 
 
-unsigned char plx9030Detector::checkMem() {
+unsigned char Plx9030PSD::checkMem() {
 	unsigned char byte = 0x00;
 	byte = plx->read8(PLX9030::CS0, 3);
 	byte &= 0x0f;
 	return byte;
 }
 
-int plx9030Detector::fromCode(int code) {
+int Plx9030PSD::fromCode(int code) {
 	switch(code){
 	case X1:
 		return 0;
@@ -188,6 +187,27 @@ int plx9030Detector::fromCode(int code) {
 	return -1;
 }
 
-int plx9030Detector::getStatus() {
+int Plx9030PSD::getStatus() {
+	return status;
+}
+
+
+Plx9030Counter::Plx9030Counter(std::string chrdev) {
+	_chrdev = chrdev;
+	plx = new PLX9030::plx9030(chrdev);
+	status = plx->getStatus();
+	if(status != 0){
+		delete plx;
+	}
+
+}
+
+Plx9030Counter::~Plx9030Counter() {
+	if(plx != nullptr){
+		delete plx;
+	}
+}
+
+int Plx9030Counter::getStatus() {
 	return status;
 }

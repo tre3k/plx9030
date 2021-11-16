@@ -79,7 +79,7 @@ namespace PLX9030{
 		int getFileDescriptor(void);
 
 		/* Functions for write/read CS0..3 for 8,16,24 and 32 bits */
-		// base - CS0,CS1,CS2,CS3
+		// base - CS0, CS1, CS2, CS3
 		char read8(uint32_t base, long int offset);
 		void write8(uint32_t base, long int offset, char byte);
 

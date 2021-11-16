@@ -61,16 +61,19 @@ namespace PLX9030Detector{
 	};
 
 
-	class plx9030Detector {
+	/* PSD Detector */
+	class Plx9030PSD {
 	public:
-		explicit plx9030Detector(std::string device);
-		~plx9030Detector();
+		explicit Plx9030PSD(std::string device);
+		~Plx9030PSD();
 		void init(void);
 		void start(void);
 		void stop(void);
 		raw_data readMem(void);
 		std::vector<raw_data> getAllMemory(void);
-		std::vector<four_value> convertToFourValue(std::vector<raw_data>);
+		std::vector<four_value> convertToFourValue(
+			std::vector<raw_data>
+			);
 		unsigned char checkMem(void);
 		int getStatus(void);
 
@@ -88,48 +91,55 @@ namespace PLX9030Detector{
 	};
 
 
-        /* Нужно сделать класс для работы счетчкиа с той-же plx9030 */
+	/* COUNTER */
 	class Plx9030Counter{
+	public:
+		Plx9030Counter(std::string chrdev);
+		~Plx9030Counter();
+		int getStatus(void);
+
+	protected:
+		PLX9030::plx9030 *plx = nullptr;
+		std::string _chrdev;
+		int status {0};
 
 	};
-
 }
-
 
 
 extern "C"
 {
-	PLX9030Detector::plx9030Detector *
-	plx9030det(char *chrdev) {
+	PLX9030Detector::Plx9030PSD *
+	plx9030Psd(char *chrdev) {
 		return new PLX9030Detector::
-			plx9030Detector(std::string(chrdev));
+			Plx9030PSD(std::string(chrdev));
 	}
 
-	unsigned int checkMem(PLX9030Detector::plx9030Detector *f) {
+	unsigned int checkMemPsd(PLX9030Detector::Plx9030PSD *f) {
 		return f->checkMem();
 	}
 
-	int getStatus(PLX9030Detector::plx9030Detector *f) {
+	int getStatusPsd(PLX9030Detector::Plx9030PSD *f) {
 		return f->getStatus();
 	}
 
-	void init(PLX9030Detector::plx9030Detector *f) {
+	void initPsd(PLX9030Detector::Plx9030PSD *f) {
 		f->init();
 	}
 
-	void start(PLX9030Detector::plx9030Detector *f) {
+	void startPsd(PLX9030Detector::Plx9030PSD *f) {
 		f->start();
 	}
 
-	void stop(PLX9030Detector::plx9030Detector *f) {
+	void stopPsd(PLX9030Detector::Plx9030PSD *f) {
 		f->stop();
 	}
 
-	void delete_plx9030det(PLX9030Detector::plx9030Detector *f) {
+	void delete_plx9030Psd(PLX9030Detector::Plx9030PSD *f) {
 		delete f;
 	}
 
-	void read_data(PLX9030Detector::plx9030Detector *f,
+	void readDataPsd(PLX9030Detector::Plx9030PSD *f,
 		       unsigned int *data,
 		       int size) {
 
@@ -137,8 +147,8 @@ extern "C"
 		// for(auto var : fullMem) { .... } etc...
 
 		int coord;
-		for(int i=0;i<10;i++){
-			coord = rand()%(size*size);
+		for(int i = 0; i < 10; i++){
+			coord = rand() % (size * size);
 			data[coord] += 1;
 		}
 	}

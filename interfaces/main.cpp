@@ -33,8 +33,8 @@ int main(int argc,char **argv){
 
 	std::cout << "try open char device file: " <<
 		device_name << std::endl;
-	PLX9030Detector::plx9030Detector *det =
-		new PLX9030Detector::plx9030Detector(device_name);
+	PLX9030Detector::Plx9030PSD *det =
+		new PLX9030Detector::Plx9030PSD(device_name);
 	if(det->getStatus() != 0){
 		std::cout << "Can't open char device file." <<
 			std::endl << "exiting." << std::endl;
