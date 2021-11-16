@@ -94,9 +94,44 @@ namespace PLX9030Detector{
 	/* COUNTER */
 	class Plx9030Counter{
 	public:
+		/* STATUS */
+		const int STATUS_OK {0};
+		const int STATUS_ERROR_FILE_DESCRIPTOR {-1};
+		const int STATUS_NOT_COUNTER_DEVICE {-2};
+
+		/* Control Register Bits */
+		const uint8_t CONTROL_REGISTER {2};
+		const uint8_t CR_RG_GATE {0x80};
+		const uint8_t CR_LOAD_CRM {0x40};
+		const uint8_t CR_END_CRM {0x20};
+		const uint8_t CR_RGCLR {0x10};
+
+		/* Time control register bits */
+		const uint8_t TIMER_REGISTER {3};
+		const uint8_t TR_GATE_SEL {0x80};
+		const uint8_t TR_LOAD_GATE {0x40};
+		const uint8_t TR_EN_GATE {0x20};
+		const uint8_t TR_CLR_GATE {0x10};
+
+                /* timer value registers */
+		const uint8_t TIMER_STATUS_REGISTER {4};
+		const uint8_t TIMER_BUFFER_REGISTER {8};
+		const uint8_t TIMER_VALUE_REGISTER {12};
+
 		Plx9030Counter(std::string chrdev);
 		~Plx9030Counter();
+
 		int getStatus(void);
+		uint32_t readValue(short channel);
+		void writeValue(uint32_t value, short channel);
+		void setTimeInterval(unsigned int time);
+		void startTimer(void);
+		void stopTimer(void);
+		bool isFinish(void);
+		void resetCounter(void);
+		uint32_t readTimer(void);
+		void writeTimer(uint32_t value);
+		void resetTimer(void);
 
 	protected:
 		PLX9030::plx9030 *plx = nullptr;
@@ -151,6 +186,11 @@ extern "C"
 			coord = rand() % (size * size);
 			data[coord] += 1;
 		}
+	}
+
+	PLX9030Detector::Plx9030Counter *plx9030counter(char *chrdev) {
+		return new PLX9030Detector::
+			Plx9030Counter(std::string(chrdev));
 	}
 }
 

@@ -192,6 +192,7 @@ int Plx9030PSD::getStatus() {
 }
 
 
+/* COUNTER */
 Plx9030Counter::Plx9030Counter(std::string chrdev) {
 	_chrdev = chrdev;
 	plx = new PLX9030::plx9030(chrdev);
@@ -199,7 +200,18 @@ Plx9030Counter::Plx9030Counter(std::string chrdev) {
 	if(status != 0){
 		delete plx;
 	}
+	/* read 4 ofsset addr from cs0 */
+	char test = (char)(
+		plx->read8(PLX9030::CS0, TIMER_STATUS_REGISTER) & 0x7f
+		);
+	if(test != 0x55){
+		//this is not counter device!
+		status = STATUS_NOT_COUNTER_DEVICE;
+		return;
+	}
 
+	plx->write8(PLX9030::CS0, CONTROL_REGISTER, 0x00);
+	plx->write8(PLX9030::CS0, TIMER_REGISTER, 0x00);
 }
 
 Plx9030Counter::~Plx9030Counter() {
@@ -210,4 +222,84 @@ Plx9030Counter::~Plx9030Counter() {
 
 int Plx9030Counter::getStatus() {
 	return status;
+}
+
+uint32_t Plx9030Counter::readValue(short channel) {
+	if(status != 0) return 0xffffffff;
+	return plx->read32(PLX9030::CS0, 16 + channel * 4);
+}
+
+void Plx9030Counter::writeValue(uint32_t value, short channel) {
+	if(status != 0) return;
+	plx->write32(PLX9030::CS0, 16 + channel*4, value);
+}
+
+void Plx9030Counter::setTimeInterval(unsigned int time) {
+	uint32_t buff_reg = 0xffffffff - time;
+	plx->write32(PLX9030::CS0, TIMER_BUFFER_REGISTER, buff_reg);
+}
+
+void Plx9030Counter::startTimer() {
+	plx->write8(PLX9030::CS0, CONTROL_REGISTER, 0x00);
+	/* stop and reset timer */
+	char control_timer = plx->read8(PLX9030::CS0, TIMER_REGISTER);
+	control_timer |= (TR_GATE_SEL | TR_CLR_GATE);
+	plx->write8(PLX9030::CS0, TIMER_REGISTER, control_timer);
+
+	/* load value from preset value register (buffer register) to
+	   timer value register (timer read register) */
+	control_timer = plx->read8(PLX9030::CS0, TIMER_REGISTER);
+	control_timer |= TR_LOAD_GATE;
+	control_timer &=~ TR_CLR_GATE;
+	plx->write8(PLX9030::CS0, TIMER_REGISTER, control_timer);
+
+	/* write 0b1111 to D0..D3 in CONTROL REGISTER
+	   (operation "not" for all inputs) */
+	plx->write8(PLX9030::CS0, CONTROL_REGISTER, 0x0f);
+
+	char control_register = plx->read8(PLX9030::CS0, CONTROL_REGISTER);
+	control_register |= (CR_RGCLR | CR_END_CRM);
+	plx->write8(PLX9030::CS0, CONTROL_REGISTER, control_register);
+
+	/* start timer */
+	control_timer = TR_GATE_SEL | TR_EN_GATE;
+	plx->write8(PLX9030::CS0, TIMER_REGISTER, control_timer);
+}
+
+void Plx9030Counter::stopTimer() {
+	char control_timer = plx->read8(PLX9030::CS0, TIMER_REGISTER);
+	control_timer &=~ (TR_EN_GATE | TR_CLR_GATE);
+	plx->write8(PLX9030::CS0, TIMER_REGISTER, control_timer);
+
+	char control_register = plx->read8(PLX9030::CS0, CONTROL_REGISTER);
+	control_register |= CR_END_CRM;
+	plx->write8(PLX9030::CS0, CONTROL_REGISTER, control_register);
+}
+
+bool Plx9030Counter::isFinish() {
+	/* test GATE_STATE bit */
+        return (plx->read8(PLX9030::CS0, TIMER_STATUS_REGISTER) & 0x80) ?
+		true : false;
+}
+
+void Plx9030Counter::resetCounter() {
+	char control_register = plx->read8(PLX9030::CS0,
+					   CONTROL_REGISTER);
+	control_register &= ~CR_RGCLR;  // clear counters
+	plx->write8(PLX9030::CS0, CONTROL_REGISTER, control_register);
+}
+
+uint32_t Plx9030Counter::readTimer(){
+	uint32_t retval = plx->read32(PLX9030::CS0, TIMER_VALUE_REGISTER);
+	return retval;
+}
+
+void Plx9030Counter::writeTimer(uint32_t value) {
+	plx->write32(PLX9030::CS0, TIMER_BUFFER_REGISTER, value);
+}
+
+void Plx9030Counter::resetTimer() {
+	char control_timer = plx->read8(PLX9030::CS0, TIMER_REGISTER);
+	control_timer |= TR_CLR_GATE;
+	plx->write8(PLX9030::CS0, TIMER_REGISTER, control_timer);
 }
