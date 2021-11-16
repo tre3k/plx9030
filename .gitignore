@@ -2,6 +2,7 @@
 /lib/
 /bin/
 
+__pycache__
 modules.order
 Module.symvers
 /interfaces/compile_commands.json
@@ -11,3 +12,4 @@ Module.symvers
 *.o
 *.mod.*
 *.mod
+*.so

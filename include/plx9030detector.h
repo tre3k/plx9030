@@ -179,8 +179,10 @@ extern "C"
 		       int size) {
 
 		// auto fullMem = f->getAllMemory();
-		// for(auto var : fullMem) { .... } etc...
+		// auto values = convertToFourValue(fullMem);
+		// for(auto var : values) { .... } etc...
 
+		/* VIRTUAL TEST */
 		int coord;
 		for(int i = 0; i < 10; i++){
 			coord = rand() % (size * size);
