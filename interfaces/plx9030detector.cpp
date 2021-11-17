@@ -87,6 +87,7 @@ void Plx9030PSD::init(){
 	plx->write_hw16(PLX9030::CS3, 8, 0);
 
 	usleep(100000);
+	status = plx->getStatus();
 }
 
 void Plx9030PSD::start(){
@@ -95,10 +96,12 @@ void Plx9030PSD::start(){
 	plx->write_hw16(PLX9030::CS3, 31, 0xf001);
 	plx->write8(PLX9030::CS0, 2, 0x60);
 	plx->write_hw16(PLX9030::CS3, 31, 0xfc03);
+	status = plx->getStatus();
 }
 
 void Plx9030PSD::stop(){
 	plx->write_hw16(PLX9030::CS3,  31,  0xf803);
+	status = plx->getStatus();
 }
 
 raw_data Plx9030PSD::readMem(){
@@ -106,6 +109,8 @@ raw_data Plx9030PSD::readMem(){
 	uint16_t tmp;
 
 	tmp = (uint16_t)(plx->read_hw16(PLX9030::CS3, 256) & 0xffff);
+	status = plx->getStatus();
+
 	retval.raw = tmp;
 	retval.code = (tmp & 0xe000) >> 13;
 	retval.value = tmp & 0x1fff;
@@ -169,6 +174,7 @@ std::vector<four_value> Plx9030PSD::convertToFourValue(
 unsigned char Plx9030PSD::checkMem() {
 	unsigned char byte = 0x00;
 	byte = plx->read8(PLX9030::CS0, 3);
+	status = plx->getStatus();
 	byte &= 0x0f;
 	return byte;
 }

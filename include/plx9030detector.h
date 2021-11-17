@@ -190,9 +190,21 @@ extern "C"
 		}
 	}
 
-	PLX9030Detector::Plx9030Counter *plx9030counter(char *chrdev) {
+	PLX9030Detector::Plx9030Counter *plx9030Counter(char *chrdev) {
 		return new PLX9030Detector::
 			Plx9030Counter(std::string(chrdev));
+	}
+
+	bool isFinishCounter(PLX9030Detector::Plx9030Counter *f) {
+		// return f->isFinish();
+		return true;
+	}
+
+	int readValueCounter(PLX9030Detector::Plx9030Counter *f,
+			     int channel) {
+		// return f->readValue((short)(channel & 0xffff));
+		return rand()%100;
+
 	}
 }
 
