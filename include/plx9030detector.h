@@ -1,7 +1,7 @@
 /*
  *  Copyright (c) 2019-2021 NRC KI PNPI, Gatchina, LO, 188300 Russia
  *
- *  This file is part of kernel module plx9030.
+ *  this file is part of kernel module plx9030.
  *
  *  plx9030 is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -63,17 +63,65 @@ namespace PLX9030Detector{
 		bool correct;
 	};
 
-
-	/* PSD Detector */
+	/**
+	 * @brief Neutron PSD detector class
+	 * @code
+	 * auto psd = new Plx9030PSD("/dev/plxdev0");
+	 * @endcode
+	 * @param [in] device Path to file of char device of plx9030
+	 */
 	class Plx9030PSD {
 	public:
 		explicit Plx9030PSD(std::string device);
 		~Plx9030PSD();
+		/**
+		 * @brief Initialisation function
+		 * You need use this before working with PSD detector
+		 * @code
+		 * psd->init();
+		 * @endcode
+		 */
 		void init(void);
+		/**
+		 * @brief Start count function
+		 * @code
+		 * psd->start();
+		 * @endcode
+		 */
 		void start(void);
+		/**
+		 * @brief Stop count function
+		 * @code
+		 * psd->stop();
+		 * @endcode
+		 */
 		void stop(void);
+		/**
+		 * @brief Read memory with time delay information
+		 * This function read 2 bytes from PSD memory (just one pop
+		 * from FIFO memroy)
+		 * @code
+		 * auto rd = psd->readMem();
+		 * @endcode
+		 * @param out rd.raw uint16_t type of raw value of memroy \
+		 * [ 4 bit code ][ 12 bit value ]
+		 * @param out rd.code determine of x0, x1, y0 or y1
+		 * @param out rd.value value of time delay between anode \
+		 * signal and x0, x1, y0, y1 signal
+		 */
 		raw_data readMem(void);
+		/**
+		 * @brief Read all memory
+		 * read memory (call readMem() function) until the whole
+		 * @code
+		 * auto mem = psd->getAllMemory();
+		 * for(auto rd : mem) {
+		 *     std::cout << rd.code << ":" << rd.value << std::endl;
+		 * }
+		 * @endcode
+		 */
 		std::vector<raw_data> getAllMemory(void);
+
 		std::vector<four_value> convertToFourValue(
 			std::vector<raw_data>
 			);
@@ -94,35 +142,49 @@ namespace PLX9030Detector{
 	};
 
 
-	/* COUNTER */
+	/**
+	 * @brief Neutron counter class
+	 * @code
+	 * auto counter = Plx9030Counter("/dev/plxdev0");
+	 * @endcode
+	 * @param in chrdev Path to char device file of plx9030
+	 */
 	class Plx9030Counter{
 	public:
-		/* STATUS */
+		Plx9030Counter(std::string chrdev);
+		~Plx9030Counter();
+
+		/**
+		 * @brief Status values
+		 */
 		const int STATUS_OK {0};
 		const int STATUS_ERROR_FILE_DESCRIPTOR {-1};
 		const int STATUS_NOT_COUNTER_DEVICE {-2};
 
-		/* Control Register Bits */
+		/**
+		 * @brief Control Register Bits
+		 */
 		const uint8_t CONTROL_REGISTER {2};
 		const uint8_t CR_RG_GATE {0x80};
 		const uint8_t CR_LOAD_CRM {0x40};
 		const uint8_t CR_END_CRM {0x20};
 		const uint8_t CR_RGCLR {0x10};
 
-		/* Time control register bits */
+		/**
+		 * @brief Time control register bits
+		 */
 		const uint8_t TIMER_REGISTER {3};
 		const uint8_t TR_GATE_SEL {0x80};
 		const uint8_t TR_LOAD_GATE {0x40};
 		const uint8_t TR_EN_GATE {0x20};
 		const uint8_t TR_CLR_GATE {0x10};
 
-                /* timer value registers */
+                /**
+		 * @brief timer value registers
+		 */
 		const uint8_t TIMER_STATUS_REGISTER {4};
 		const uint8_t TIMER_BUFFER_REGISTER {8};
 		const uint8_t TIMER_VALUE_REGISTER {12};
-
-		Plx9030Counter(std::string chrdev);
-		~Plx9030Counter();
 
 		int getStatus(void);
 		uint32_t readValue(short channel);
@@ -206,6 +268,7 @@ extern "C"
 	int readValueCounter(PLX9030Detector::Plx9030Counter *f,
 			     int channel) {
 		// return f->readValue((short)(channel & 0xffff));
+		/* VIRTUAL TEST */
 		return rand()%100;
 	}
 
@@ -220,7 +283,6 @@ extern "C"
 	void resetCounter(PLX9030Detector::Plx9030Counter *f) {
 		f->resetCounter();
 	}
-
 }
 
 
