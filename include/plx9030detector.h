@@ -17,6 +17,9 @@
  *  along with plx9030.  If not, see <https://www.gnu.org/licenses/>.
  *
  *     Authors:  2019-2021 Kirill Pshenichnyi <pshcyrill@mail.ru>
+ *
+ *  Library for working with PSD neutron detector and 4-channel counter,
+ *  devices use PCI controller plx9030.
  */
 
 
@@ -204,8 +207,20 @@ extern "C"
 			     int channel) {
 		// return f->readValue((short)(channel & 0xffff));
 		return rand()%100;
-
 	}
+
+	void startCounter(PLX9030Detector::Plx9030Counter *f) {
+		f->startTimer();
+	}
+
+	void stopCounter(PLX9030Detector::Plx9030Counter *f) {
+		f->stopTimer();
+	}
+
+	void resetCounter(PLX9030Detector::Plx9030Counter *f) {
+		f->resetCounter();
+	}
+
 }
 
 
