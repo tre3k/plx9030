@@ -143,8 +143,11 @@ static int init_chrdev(void){
 
 	sprintf(device_name,"plxdev%d",gCount);
 	sprintf(device_name_class,"plxdev%d",gCount);
-
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,9)
+	devs[gCount].dev_class = class_create(device_name_class);
+#else
 	devs[gCount].dev_class = class_create(THIS_MODULE, device_name_class);
+#endif
 	if(devs[gCount].dev_class == NULL) goto err_class;
 	devs[gCount].mkdev = MKDEV(gMajor, gCount);
 	if(device_create(devs[gCount].dev_class,

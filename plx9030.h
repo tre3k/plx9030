@@ -36,6 +36,7 @@
 #include <linux/fs.h>
 #include <linux/pci.h>
 #include <linux/delay.h>
+#include <linux/version.h>
 
 #define MODULE_NAME "plx9030"
 #define DEVICE_FILE_NAME "plxdev"
@@ -58,7 +59,6 @@
 static unsigned int gCount = 0;
 static dev_t tdev;
 static unsigned int gMajor;
-
 
 /* function of prototypes for device file */
 static ssize_t device_file_read(struct file *f,
